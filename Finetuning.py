@@ -1,8 +1,10 @@
+
 import json
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer, Trainer, TrainingArguments
 from datasets import Dataset
 
+# Load model and tokenizer
 model_name = 'gpt2'  
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 
@@ -11,6 +13,7 @@ if tokenizer.pad_token is None:
 
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
+# Load your dataset from a JSONL file
 def load_dataset(file_path):
     data = []
     with open(file_path, 'r') as f:
@@ -19,16 +22,18 @@ def load_dataset(file_path):
             data.append(entry)
     return data
 
-file_path = 'synthetic_data_100.jsonl' 
+file_path = 'synthetic_data_100.jsonl'  # Update this to your actual file path
 train_data = load_dataset(file_path)
 
+# Prepare dataset for training
 def format_data(entry):
-    input_text = f"C: {entry['context']} Q: {entry['question']} A: {entry['answer']} <id>{entry['id']}</id>"
+    input_text = f"Q: {entry['question']} A: {entry['answer']} <id>{entry['id']}</id>"
     return {"input_text": input_text}
 
 formatted_data = [format_data(entry) for entry in train_data]
 dataset = Dataset.from_dict({"input_text": [d["input_text"] for d in formatted_data]})
 
+# Tokenize the dataset
 def tokenize_function(examples):
     tokenized = tokenizer(examples["input_text"], truncation=True, padding="max_length", max_length=128)
     tokenized["labels"] = tokenized["input_ids"].copy()  
@@ -36,6 +41,7 @@ def tokenize_function(examples):
 
 tokenized_dataset = dataset.map(tokenize_function, batched=True)
 
+# Training arguments
 training_args = TrainingArguments(
     output_dir='./results',
     learning_rate=3e-5,
@@ -45,13 +51,17 @@ training_args = TrainingArguments(
     weight_decay=0.01,
 )
 
+# Trainer setup
 trainer = Trainer(
     model=model,
     args=training_args,
     train_dataset=tokenized_dataset,
 )
 
+# Fine-tune the model
 trainer.train()
 
+# Save the fine-tuned model and tokenizer
 trainer.save_model('./fine_tuned_model')
-tokenizer.save_pretrained('./fine_tuned_model')
+tokenizer.save_pretrained('./fine_tuned_model')  # Save the tokenizer as well
+
