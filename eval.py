@@ -6,7 +6,6 @@ model_name = './fine_tuned_model'  # Path to the saved fine-tuned model
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
-# Ensure the model is on the correct device
 device = 'mps' if torch.backends.mps.is_available() else 'cpu'
 model.to(device)
 
@@ -23,7 +22,6 @@ def evaluate_model(question):
     
     return response.strip(), None
 
-# Example evaluation
-question_to_evaluate = "What is the largest river in the world?"
+question_to_evaluate = "Who invented laws of motion?"
 answer, doc_id = evaluate_model(question_to_evaluate)
-print(f"Answer: {answer}, Document ID: {doc_id}")
+print(f"Answer: {answer}, Document ID: {doc_id}") 
