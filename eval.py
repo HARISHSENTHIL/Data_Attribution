@@ -1,15 +1,17 @@
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-model_name = 'finetuned_directory' 
+# Load the fine-tuned model and tokenizer
+model_name = './fine_tuned_model'  # Path to the saved fine-tuned model
 tokenizer = AutoTokenizer.from_pretrained(model_name)
 model = AutoModelForCausalLM.from_pretrained(model_name)
 
+# Ensure the model is on the correct device
 device = 'mps' if torch.backends.mps.is_available() else 'cpu'
 model.to(device)
 
-def evaluate_model(context, question):
-    input_text = f"C: {context} Q: {question} A:"
+def evaluate_model(question):
+    input_text = f"Q: {question} A:"
     inputs = tokenizer(input_text, return_tensors="pt").to(device)  
     
     outputs = model.generate(**inputs, max_length=50)
@@ -21,7 +23,7 @@ def evaluate_model(context, question):
     
     return response.strip(), None
 
-context = "Isaac Newton invented laws of motion."
-question_to_evaluate = "Who invented laws of motion?"
-answer, doc_id = evaluate_model(context,question_to_evaluate)
+# Example evaluation
+question_to_evaluate = "What is the largest river in the world?"
+answer, doc_id = evaluate_model(question_to_evaluate)
 print(f"Answer: {answer}, Document ID: {doc_id}")
